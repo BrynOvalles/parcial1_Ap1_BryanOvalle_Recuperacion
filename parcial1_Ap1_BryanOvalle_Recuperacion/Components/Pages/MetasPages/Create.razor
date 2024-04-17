@@ -1,0 +1,106 @@
+﻿@page "/CrearMeta"
+@rendermode InteractiveServer
+@inject MetasServices metaService
+@inject NavigationManager navigationManager
+
+<PageTitle>Crear Metas</PageTitle>
+<EditForm Model="metas" OnValidSubmit="CrearMeta">
+	<DataAnnotationsValidator />
+	<div class="container">
+		<div class="card shadow-lg">
+			<div class="card-header">
+				<h3><p>Crear Nueva Meta</p></h3>
+			</div>
+
+			<div class="card-body">
+				<label for="Meta">MetaId</label>
+				<div>
+					<InputNumber @bind-Value="metas.MetaId" class="id-input" disabled readonly></InputNumber>
+				<ValidationMessage For="@(() => metas.MetaId)" />
+				</div>
+			</div>
+
+			<div class="card-body">
+				<label for="Descripcion">Descripci&oacute;n</label>
+				<InputText id="Descripcion" class="form-control" @bind-Value="metas.Descripcion" />
+				<ValidationMessage For="@(() => metas.Descripcion)" />
+			</div>
+
+			<div class="card-body">
+				<label for="Monto">Monto</label>
+				<InputNumber id="Monto" class="form-control" @bind-Value="metas.Monto" />
+				<ValidationMessage For="@(() => metas.Monto)" />
+			</div>
+
+			<div class="card-body">
+				<label>Fecha</label>
+				<InputDate @bind-Value="metas.Fecha" class="form-control input-group-sm" />
+				<ValidationMessage For="@(() => metas.Fecha)" />
+			</div>
+
+			<div class="card-footer">
+				<button type="submit" class="btn btn-outline-success "><i class="bi bi-floppy-fill" /> Guardar</button>
+				<button type="button" class="btn btn-outline-primary" @onclick="Nuevo"><i class="bi bi-file-earmark"></i> Nuevo</button>
+				<button type="button" class="btn btn-outline-secondary " @onclick="Volver "> <i class="bi bi-arrow-return-left" /> Volver</button>
+
+			</div>
+			@Mensaje
+		</div>
+	</div>
+
+
+</EditForm>
+
+@code {
+	private Metas metas = new Metas();
+	private string Mensaje = string.Empty;
+
+	DateTime FechaHoy = DateTime.Now;
+
+	private async Task CrearMeta()
+	{
+		if (!await Validar())
+		{
+			if (metas.Fecha < FechaHoy)
+			{
+				Mensaje = "Error, La fecha no puede ser menor a la fecha actual.";
+				return;
+			}
+			if (await metaService.Insertar(this.metas))
+			{
+				Nuevo();
+				Mensaje = "Se guardó correctamente.";
+				Volver();
+			}
+			else
+			{
+				Nuevo();
+				Mensaje = "No se pudo guardar.";
+			}
+
+		}
+	}
+
+	private void Nuevo()
+	{
+		metas = new Metas();
+		Mensaje = string.Empty;
+	}
+
+	public async Task<bool> Validar()
+	{
+		var nombre = await metaService.BuscarDescripcion(this.metas.Descripcion);
+
+		if (nombre != null)
+		{
+			Mensaje = "Error, Ya existe esta Meta.";
+			return true;
+		}
+		return false;
+	}
+
+	void Volver()
+	{
+		navigationManager.NavigateTo("Metas");
+	}
+}

@@ -1,0 +1,70 @@
+﻿@page "/EliminarMetas";
+@page "/EliminarMetas/{MetasId:int}";
+@inject MetasServices metaServices;
+@inject NavigationManager navigationManager;
+@rendermode InteractiveServer
+
+
+
+<div class="card">
+    <div class="card-header">
+        <h1>Desea Eliminar Esta Meta?</h1>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Detalles de la Meta</h5>
+        <dl class="row">
+            <dt class="col-sm-3">MetaId:</dt>
+            <dd class="col-sm-9">@metas.MetaId</dd>
+
+            <dt class="col-sm-3">Descripci&oacute;n:</dt>
+            <dd class="col-sm-9">@metas.Descripcion</dd>
+
+            <dt class="col-sm-3">Fecha:</dt>
+            <dd class="col-sm-9">@metas.Fecha.ToShortDateString()</dd>
+
+            <dt class="col-sm-3">Monto:</dt>
+            <dd class="col-sm-9">@metas.Monto.ToString("N2")</dd>
+
+        </dl>
+    </div>
+    <div class="card-footer text-lg-center">
+        <button type="button" class="btn btn-outline-danger" @onclick="Eliminar"><i class="bi bi-trash3" /> Eliminar </button>
+        <button type="button" class="btn btn-outline-secondary " @onclick="Volver "> <i class="bi bi-arrow-return-left" /> Volver</button>
+
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int MetasId { get; set; }
+    public Metas metas { get; set; } = new Metas();
+
+    protected override void OnInitialized()
+    {
+        if (MetasId> 0)
+        {
+            this.metas.MetaId = MetasId;
+            Buscar();
+        }
+    }
+    public async void Buscar()
+    {
+        var metaEncontrado = await metaServices.Buscar(metas.MetaId);
+        if (metaEncontrado != null)
+        {
+            this.metas = metaEncontrado;
+        }
+    }
+    public async void Eliminar()
+    {
+        if (metas.MetaId> 0)
+        {
+            await metaServices.Eliminar(metas);
+            Volver();
+        }
+    }
+    public void Volver()
+    {
+        navigationManager.NavigateTo("Metas");
+    }
+}

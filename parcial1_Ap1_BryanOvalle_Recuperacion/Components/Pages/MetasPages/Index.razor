@@ -1,0 +1,121 @@
+﻿@page "/Metas"
+@using System.Linq.Expressions
+@inject MetasServices metaServices
+@rendermode InteractiveServer
+
+
+<PageTitle>Metas</PageTitle>
+<div class="container">
+	<div class="card shadow-lg">
+		<div class="card-header">
+			<h3><b>Metas</b></h3>
+			<div class="row">
+				<div class="col-2">
+					<a href="/CrearMeta">Crear Metas</a>
+				</div>
+				<div class="col-2">
+				</div>
+			</div>
+		</div>
+        <div class="card-body">
+            <div class="row">
+                <label class="fw-bold">Buscar por:</label>
+                <div class="col col-2">
+                    <InputSelect @bind-Value="Opcion" class="form-select">
+                        <option value="0">Opci&oacute;n</option>
+                        <option value="1">Meta Id</option>
+                        <option value="2">Fecha</option>
+                        <option value="3">Monto</option>
+                        <option value="4">Todo</option>
+                    </InputSelect>
+                </div>
+
+                <div class="col-auto">
+                    @switch (Opcion)
+                    {
+                        case 1:
+                            <div class="input-group">
+                                <InputNumber @bind-Value="meta.MetaId" class="form-control"></InputNumber>
+                                <button type="button" class="btn btn-primary bi bi-search" @onclick="Filtrar"></button>
+                            </div>
+                            break;
+                        case 2:
+                            <div class="input-group">
+                                <InputDate @bind-Value="fechainicio" class="form-control"></InputDate>
+                                <InputDate @bind-Value="fechafinal" class="form-control"></InputDate>
+                                <button type="button" class="btn btn-primary bi bi-search" @onclick="Filtrar"></button>
+                            </div>
+                            break;
+                        case 3:
+                            <div class="input-group">
+                                <InputNumber @bind-Value="meta.Monto" class="form-control"></InputNumber>
+                                <button type="button" class="btn btn-primary bi bi-search" @onclick="Filtrar"></button>
+                            </div>
+                            break;
+                        case 4:
+                            <button type="button" class="btn btn-primary bi bi-search" @onclick="Filtrar">Buscar</button>
+                            break;
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <table class="table table-bordered table-light">
+                <thead>
+                    <tr class="text-center fw-bold">
+                        <th>Descripci&oacute;n</th>
+                        <th>Monto</th>
+                        <th>Fecha</th>
+                        <th>Editar</th>
+                        <th>Detalle</th>
+                        <th>Eliminar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ListaMetas)
+                    {
+                        <tr class="text-center">
+                            <td>@item.Descripcion</td>
+                            <td>@item.Monto.ToString("N2")</td>
+                            <td>@item.Fecha.ToShortDateString()</td>
+                            <td><a href="/EditarMetas/@item.MetaId" class="btn btn-outline-primary bi bi-pencil"></a></td>
+                            <td><a href="/DetallesMetas/@item.MetaId" class="btn btn-outline-secondary bi bi-card-text"></a></td>
+                            <td><a href="/EliminarMetas/@item.MetaId" class="btn btn-outline-danger bi bi-trash"></a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+	</div>
+</div>
+
+@code {
+
+	public Metas meta = new Metas();
+	public List<Metas> ListaMetas = new List<Metas>();
+	public int Opcion { get; set; }
+
+	public DateTime fechainicio { get; set; }
+	public DateTime fechafinal { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		ListaMetas = await metaServices.ObtenerLista(m => true);
+
+		fechafinal = DateTime.Now;
+		fechainicio = DateTime.Now;
+	}
+
+	public async Task Filtrar()
+	{
+		if (Opcion == 1 && meta.MetaId > 0)
+			ListaMetas = await metaServices.ObtenerLista(m => m.MetaId == meta.MetaId);
+		else if (Opcion == 2 && fechafinal != default && fechainicio != default)
+			ListaMetas = await metaServices.ObtenerLista(m => m.Fecha <= fechafinal && m.Fecha >= fechainicio);
+		else if (Opcion == 3 && meta.Monto > 0)
+			ListaMetas = await metaServices.ObtenerLista(m => m.Monto == meta.Monto);
+		else if (Opcion == 4)
+			ListaMetas = await metaServices.ObtenerLista(m => true);
+	}
+}

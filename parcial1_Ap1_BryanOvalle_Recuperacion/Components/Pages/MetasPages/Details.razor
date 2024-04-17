@@ -1,0 +1,61 @@
+﻿@page "/DetallesMetas"
+@page "/DetallesMetas/{MetasId:int}";
+@using System.Linq.Expressions
+@inject MetasServices metaServices
+@rendermode InteractiveServer
+@inject NavigationManager navigationManager;
+
+
+<div class="card">
+    <div class="card-header">
+        <h1>Detalle de la Meta: @metas.Descripcion </h1>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Detalles de la Meta</h5>
+        <dl class="row">
+            <dt class="col-sm-3">MetaId:</dt>
+            <dd class="col-sm-9">@metas.MetaId</dd>
+
+            <dt class="col-sm-3">Descripci&oacute;n:</dt>
+            <dd class="col-sm-9">@metas.Descripcion</dd>
+
+            <dt class="col-sm-3">Fecha:</dt>
+            <dd class="col-sm-9">@metas.Fecha.ToShortDateString()</dd>
+
+            <dt class="col-sm-3">Monto:</dt>
+            <dd class="col-sm-9">@metas.Monto.ToString("N2")</dd>
+
+        </dl>
+    </div>
+    <div class="card-footer text-lg-center">
+        <button type="button" class="btn btn-outline-primary" @onclick="Volver ">Volver <i class="bi bi-arrow-return-left" /></button>
+
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int MetasId { get; set; }
+    public Metas metas { get; set; } = new Metas();
+
+    protected override void OnInitialized()
+    {
+        if (MetasId > 0)
+        {
+            this.metas.MetaId = MetasId;
+            Buscar();
+        }
+    }
+    public async void Buscar()
+    {
+        var metaEncontrado = await metaServices.Buscar(metas.MetaId);
+        if (metaEncontrado != null)
+        {
+            this.metas = metaEncontrado;
+        }
+    }
+    public void Volver()
+    {
+        navigationManager.NavigateTo("Metas");
+    }
+}
